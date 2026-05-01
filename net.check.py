@@ -1,27 +1,19 @@
-# DLL++ System Library: net.check
-import socket
-import urllib.request
+import socket, urllib.request, subprocess
 
 def get_data():
-    """Проверяет соединение и получает IP"""
     try:
-        # Получаем локальный IP
-        hostname = socket.gethostname()
-        local_ip = socket.gethostbyname(hostname)
+        # Проверка внешнего IP
+        ext_ip = urllib.request.urlopen('https://api.ipify.org', timeout=3).read().decode('utf8')
         
-        # Проверяем интернет (Google DNS)
-        socket.create_connection(("8.8.8.8", 53), timeout=3)
-        status = "Online"
+        # Проверка пинга до Google
+        ping_res = subprocess.run(['ping', '-n', '1', '8.8.8.8'], capture_output=True, text=True)
+        ping = "OK" if ping_res.returncode == 0 else "High Latency"
         
-        # Получаем внешний IP (через API)
-        external_ip = urllib.request.urlopen('https://ident.me').read().decode('utf8')
+        return {
+            "LOCAL_IP": socket.gethostbyname(socket.gethostname()),
+            "EXT_IP": ext_ip,
+            "NET_STATUS": "Connected",
+            "PING": ping
+        }
     except:
-        status = "Offline"
-        local_ip = "127.0.0.1"
-        external_ip = "None"
-
-    return {
-        "NET_STATUS": status,
-        "LOCAL_IP": local_ip,
-        "EXT_IP": external_ip
-    }
+        return {"NET_STATUS": "Offline", "EXT_IP": "None", "PING": "Error"}

@@ -1,16 +1,23 @@
 import shutil
 import os
 
-def get_stats(drive="C:\\"):
-    total, used, free = shutil.disk_usage(drive)
-    return {
-        "used": round(used / (2**30), 2),
-        "free": round(free / (2**30), 2)
-    }
-
-def get_biggest(path="C:\\"):
-    # Простой поиск в корне для примера
-    files = [os.path.join(path, f) for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
-    if not files: return "None", 0
-    biggest = max(files, key=os.path.getsize)
-    return os.path.basename(biggest), round(os.path.getsize(biggest) / (2**20), 2)
+def get_data():
+    """Получает данные о диске C в стиле проводника Windows"""
+    try:
+        # Получаем данные в байтах
+        total, used, free = shutil.disk_usage("C:\\")
+        
+        # Переводим в Гигабайты (делим на 1024^3)
+        total_gb = total / (1024**3)
+        free_gb = free / (1024**3)
+        
+        # Считаем занятое место ТАК ЖЕ, как Windows (Общее - Свободное)
+        real_used_gb = total_gb - free_gb
+        
+        return {
+            "USED": str(round(real_used_gb, 1)), # Занято
+            "FREE": str(round(free_gb, 1)),      # Свободно
+            "TOTAL": str(round(total_gb, 1))     # Всего
+        }
+    except Exception as e:
+        return {"USED": "0", "FREE": "0", "TOTAL": "0"}
