@@ -1,17 +1,26 @@
-# DLL++ Library: system.win
+# DLL++ System Library: system.win
 import os
 import subprocess
 
-def run_cmd(command):
-    """Запуск любой команды в скрытом режиме"""
-    subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+def get_data():
+    """Получает имя пользователя и версию Windows"""
+    import platform
+    return {
+        "USER": os.getlogin(),
+        "OS_VER": platform.release(),
+        "ARCH": platform.machine()
+    }
 
-def lock_pc():
-    """Заблокировать компьютер"""
-    os.system("rundll32.exe user32.dll,LockWorkStation")
+def action(cmd):
+    """Выполняет системные действия"""
+    if cmd == "shutdown":
+        os.system("shutdown /s /t 1")
+    elif cmd == "restart":
+        os.system("shutdown /r /t 1")
+    elif cmd == "lock":
+        import ctypes
+        ctypes.windll.user32.LockWorkStation()
 
-def restart_explorer():
-    """Перезапустить проводник (если завис)"""
-    os.system("taskkill /f /im explorer.exe && start explorer.exe")
-
-# Команда: dll}bat{=system.win(lock):
+def process_kill(name):
+    """Принудительно завершает процесс"""
+    os.system(f"taskkill /f /im {name}")

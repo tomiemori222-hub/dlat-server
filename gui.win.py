@@ -1,13 +1,7 @@
-# DLL++ Library: gui.win
-from tkinter import messagebox
+from tkinter import messagebox, Tk
 
-def show_message(title, text):
+def show(title, text):
+    root = Tk()
+    root.withdraw()
     messagebox.showinfo(title, text)
-
-def show_error(title, text):
-    messagebox.showerror(title, text)
-
-def ask_question(title, text):
-    return messagebox.askyesno(title, text)
-
-# Команда для вызова из DLL++: dll}bat{=gui.win(msg):Внимание,Система готова!:
+    root.destroy()
