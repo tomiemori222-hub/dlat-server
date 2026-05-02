@@ -1,5 +1,7 @@
-"""DLL++ Advanced Math Library v2.3"""
-import math, re, sys
+"""DLL++ Advanced Math Library v2.4"""
+import math, re
+
+_storage = {}
 
 MATH_CONTEXT = {
     "abs": abs, "round": round, "sqrt": math.sqrt,
@@ -26,8 +28,7 @@ def safe_eval(expr, variables):
     return eval(expr, {"__builtins__": {}}, {**MATH_CONTEXT, **variables})
 
 def execute(cmd):
-    mod = sys.modules[__name__]
-    storage = getattr(mod, 'storage', {})
+    storage = _storage
     expr = cmd.strip()
     if not expr:
         print("[calc] Введите выражение")
