@@ -1,10 +1,14 @@
-import json, os
+"""DLL++ Storage - сохранение/загрузка переменных STORAGE"""
+import json, os, sys
 
 DEFAULT_FILE = "dll_storage.json"
 
-def execute(cmd, storage, registry=None):
-    if registry is None:
-        registry = {}
+def execute(cmd):
+    # Берём storage/registry из атрибутов модуля (установлены движком)
+    mod = sys.modules[__name__]
+    storage = getattr(mod, 'storage', {})
+    registry = getattr(mod, 'registry', {})
+
     if cmd == "save":
         data = {"storage": dict(storage), "registry": dict(registry), "version": "1.0"}
         with open(DEFAULT_FILE, "w", encoding="utf-8") as f:
