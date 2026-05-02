@@ -1,44 +1,53 @@
 """
-DLL++ Math Library - безопасное вычисление арифметических выражений.
-Использует переменные из STORAGE.
+DLL++ Advanced Math Library v2.1
+Добавлены: deg, rad, sind, cosd, tand
 """
 
-def evaluate(expr, variables):
-    # Разрешённые символы: цифры, операторы, скобки, пробелы, точка, запятая для чисел
-    import re
-    # Заменяем имена переменных на их значения (если есть в variables)
-    # Простой парсинг: разрешаем только безопасные символы
-    allowed = set("0123456789+-*/().% ,")
-    # Проверим, что в выражении нет запрещённых символов после подстановки переменных
-    test_expr = expr
-    for var, val in variables.items():
-        # Имена переменных должны состоять из букв/цифр/_
-        if re.match(r'^[a-zA-Z_]\w*$', var):
-            test_expr = re.sub(r'\b' + var + r'\b', str(val), test_expr)
-    if not all(c in allowed for c in test_expr.replace(' ', '')):
-        raise ValueError("Недопустимые символы в выражении после подстановки переменных.")
-    # Вычисляем с пустыми builtins
-    return eval(test_expr, {"__builtins__": {}}, {})
+import math
+import re
+
+MATH_CONTEXT = {
+    "abs": abs, "round": round, "sqrt": math.sqrt,
+    "sin": math.sin, "cos": math.cos, "tan": math.tan,
+    "asin": math.asin, "acos": math.acos, "atan": math.atan,
+    "sind": lambda x: math.sin(math.radians(x)),
+    "cosd": lambda x: math.cos(math.radians(x)),
+    "tand": lambda x: math.tan(math.radians(x)),
+    "deg": math.degrees,
+    "rad": math.radians,
+    "log": math.log, "log10": math.log10, "exp": math.exp,
+    "pi": math.pi, "e": math.e, "pow": pow,
+    "ceil": math.ceil, "floor": math.floor
+}
+
+def safe_eval(expr, variables):
+    expr = re.sub(r'(\d+(\.\d+)?)%', r'(\1*0.01)', expr)
+    expr = expr.replace('^', '**')
+    for name, val in variables.items():
+        if re.match(r'^[a-zA-Z_]\w*$', name):
+            expr = re.sub(r'\b' + name + r'\b', str(val), expr)
+    allowed = "0123456789+-*/().% ,"
+    if not all(c in allowed + "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_" for c in expr.replace(' ', '')):
+        raise ValueError("Недопустимые символы в выражении.")
+    return eval(expr, {"__builtins__": {}}, {**MATH_CONTEXT, **variables})
 
 def execute(cmd):
-    """
-    cmd: математическое выражение, можно использовать переменные из STORAGE (если они переданы)
-    Перед вычислением библиотека должна получить доступ к STORAGE через initialize.
-    """
-    # STORAGE будет передан глобально через initialize
-    from sys import modules
-    this_mod = modules.get("calc.math")
-    if not this_mod or not hasattr(this_mod, "storage"):
-        print("[calc] Ошибка: нет доступа к переменным. Сначала загрузите библиотеку и вызовите initialize.")
+    import sys
+    mod = sys.modules.get("calc.math")
+    if not mod or not hasattr(mod, "storage"):
+        print("[calc] Ошибка: нет доступа к переменным.")
         return
-    vars = this_mod.storage
+    vars = mod.storage
+    expr = cmd.strip()
+    if not expr:
+        print("[calc] Введите выражение (например: sind(30) или 45 rad)")
+        return
     try:
-        result = evaluate(cmd.strip(), vars)
-        print(f"[calc] {cmd} = {result}")
+        result = safe_eval(expr, vars)
+        print(f"[calc] {expr} = {result}")
     except Exception as e:
         print(f"[calc] Ошибка: {e}")
 
-# Функция, вызываемая движком при загрузке библиотеки для передачи объектов
 def initialize(storage, registry=None):
     import sys
     mod = sys.modules.get("calc.math")
