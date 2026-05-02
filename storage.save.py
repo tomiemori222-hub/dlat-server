@@ -1,13 +1,15 @@
 """DLL++ Storage - сохранение/загрузка переменных STORAGE"""
-import json, os, sys
+import json, os
+
+# Эти переменные будут установлены движком после загрузки модуля
+_storage = {}
+_registry = {}
 
 DEFAULT_FILE = "dll_storage.json"
 
 def execute(cmd):
-    # Берём storage/registry из атрибутов модуля (установлены движком)
-    mod = sys.modules[__name__]
-    storage = getattr(mod, 'storage', {})
-    registry = getattr(mod, 'registry', {})
+    storage = _storage
+    registry = _registry
 
     if cmd == "save":
         data = {"storage": dict(storage), "registry": dict(registry), "version": "1.0"}
