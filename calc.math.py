@@ -1,4 +1,5 @@
-import math, re
+"""DLL++ Advanced Math Library v2.3"""
+import math, re, sys
 
 MATH_CONTEXT = {
     "abs": abs, "round": round, "sqrt": math.sqrt,
@@ -24,12 +25,12 @@ def safe_eval(expr, variables):
         raise ValueError("Недопустимые символы в выражении.")
     return eval(expr, {"__builtins__": {}}, {**MATH_CONTEXT, **variables})
 
-def execute(cmd, storage=None, registry=None):
-    if storage is None:
-        storage = {}
+def execute(cmd):
+    mod = sys.modules[__name__]
+    storage = getattr(mod, 'storage', {})
     expr = cmd.strip()
     if not expr:
-        print("[calc] Введите выражение (например: 5 + 3 * 2, sqrt(16), 10% от 200)")
+        print("[calc] Введите выражение")
         return
     try:
         result = safe_eval(expr, storage)
