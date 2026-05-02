@@ -1,20 +1,29 @@
-import subprocess
+"""DLL++ Security Scan - процессы и отладка"""
+import psutil, sys
 
-def get_data():
-    try:
-        # Получаем список процессов через tasklist
-        output = subprocess.check_output('tasklist', shell=True).decode('cp866')
-        lines = output.split('\n')
-        proc_count = len(lines) - 3 # Вычитаем заголовок
-        
-        # Проверка на наличие инструментов отладки
-        tools = ["taskmgr.exe", "processhacker.exe", "wireshark.exe", "cmd.exe"]
-        found = [p for p in tools if p in output.lower()]
-        
-        return {
-            "PROC_COUNT": str(proc_count),
-            "THREATS": "Clean" if not found else f"Detected ({len(found)})",
-            "TOOL_LIST": ", ".join(found) if found else "None"
-        }
-    except:
-        return {"PROC_COUNT": "0", "THREATS": "Error"}
+def list_processes():
+    procs = [p.info for p in psutil.process_iter(['pid', 'name'])]
+    return procs[:20]  # ограничим вывод
+
+def check_debug():
+    # простая проверка, запущен ли отладчик (только для Windows)
+    if sys.gettrace() is not None:
+        return True
+    return False
+
+def execute(cmd):
+    """
+    cmd: proc - показать процессы, debug - проверка отладчика
+    """
+    if cmd == "proc":
+        procs = list_processes()
+        print("[sec] Активные процессы:")
+        for p in procs:
+            print(f"  PID {p['pid']}: {p['name']}")
+    elif cmd == "debug":
+        if check_debug():
+            print("[sec] ВНИМАНИЕ: обнаружен отладчик!")
+        else:
+            print("[sec] Отладчик не активен")
+    else:
+        print("[sec] Команды: proc, debug")

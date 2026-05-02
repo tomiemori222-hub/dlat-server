@@ -1,31 +1,37 @@
-# DLL++ Multimedia Library: draw.canvas
-from tkinter import Tk, Canvas, BOTH
-from PIL import Image, ImageDraw
+"""DLL++ 2D Canvas - рисование фигур и спрайтов"""
+from tkinter import Tk, Canvas
+from threading import Thread
 
-def create_window(w, h, title="DLL++ Canvas"):
-    """Создает окно для рисования"""
-    root = Tk()
-    root.title(title)
-    canvas = Canvas(root, width=w, height=h, bg="white")
-    canvas.pack(fill=BOTH, expand=True)
-    return root, canvas
+class DrawingWindow:
+    def __init__(self, width=400, height=300, title="DLL++ Canvas"):
+        self.root = Tk()
+        self.root.title(title)
+        self.canvas = Canvas(self.root, width=width, height=height, bg='white')
+        self.canvas.pack()
+    def line(self, x1, y1, x2, y2, fill="black"):
+        self.canvas.create_line(x1, y1, x2, y2, fill=fill)
+    def oval(self, x1, y1, x2, y2, fill="gray"):
+        self.canvas.create_oval(x1, y1, x2, y2, fill=fill)
+    def show(self):
+        self.root.mainloop()
 
-def get_data():
-    """Возвращает параметры экрана для системы"""
-    from tkinter import Tk
-    root = Tk()
-    w = root.winfo_screenwidth()
-    h = root.winfo_screenheight()
-    root.destroy()
-    return {"SCREEN_W": str(w), "SCREEN_H": str(h)}
-
-def save_canvas(commands, filename="output.png"):
-    """Генерирует изображение на основе команд dlat и сохраняет его"""
-    img = Image.new("RGB", (800, 600), "white")
-    draw = ImageDraw.Draw(img)
-    # Пример логики: обработка простых команд рисования
-    for cmd in commands:
-        if "rect" in cmd:
-            draw.rectangle([10, 10, 100, 100], fill="red")
-    img.save(filename)
-    return f"Saved to {filename}"
+def execute(cmd):
+    """
+    cmd: JSON с командами рисования.
+    Пример: {"width":400,"height":300,"commands":[["line",10,10,100,100,"red"],["oval",50,50,150,150,"blue"]]}
+    """
+    import json
+    try:
+        data = json.loads(cmd)
+    except:
+        print("[canvas] Неверный JSON")
+        return
+    w, h = data.get("width", 400), data.get("height", 300)
+    win = DrawingWindow(w, h, data.get("title", "Canvas"))
+    for cmd in data.get("commands", []):
+        if cmd[0] == "line":
+            win.line(*cmd[1:])
+        elif cmd[0] == "oval":
+            win.oval(*cmd[1:])
+        # можно расширить
+    Thread(target=win.show, daemon=True).start()

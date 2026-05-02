@@ -1,13 +1,20 @@
+"""DLL++ Dir Helper - сканирование папок"""
 import os
 
-def get_data():
+def scan(path):
     try:
-        desktop = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
-        downloads = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Downloads')
-        
-        return {
-            "DESKTOP_FILES": str(len(os.listdir(desktop))),
-            "DL_FILES": str(len(os.listdir(downloads)))
-        }
+        items = os.listdir(path)
+        return items
     except:
-        return {"DESKTOP_FILES": "N/A", "DL_FILES": "N/A"}
+        return []
+
+def execute(cmd):
+    """
+    cmd: путь к папке (или пусто = рабочий стол)
+    Выводит список файлов и папок в консоль DLL++
+    """
+    target = cmd.strip() if cmd.strip() else os.path.expanduser("~/Desktop")
+    items = scan(target)
+    print(f"[dir] Содержимое {target}:")
+    for item in items:
+        print(f"  {item}")

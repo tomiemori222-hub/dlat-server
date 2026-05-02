@@ -1,11 +1,17 @@
-# DLL++ Library: broadcast.file
+"""DLL++ Broadcast - запись логов в файл с временной меткой"""
 import datetime
 
-def send_message(target_file, message):
-    """Записывает сообщение в файл с меткой времени"""
-    timestamp = datetime.datetime.now().strftime("%H:%M:%S")
-    with open(target_file, "a", encoding="utf-8") as f:
-        f.write(f"[{timestamp}] DLL++ Message: {message}\n")
-    print(f"[+] Сообщение отправлено в {target_file}")
+def log(message, filename="dll_broadcast.log"):
+    with open(filename, "a", encoding="utf-8") as f:
+        f.write(f"[{datetime.datetime.now()}] {message}\n")
 
-# Команда: dll}bat{=broadcast.file(send):log.txt,Система запущена успешно:
+def execute(cmd):
+    """
+    Формат: имя_файла:сообщение
+    Если имя файла не указано, пишет в dll_broadcast.log
+    """
+    if ":" in cmd:
+        fname, msg = cmd.split(":", 1)
+        log(msg, fname.strip())
+    else:
+        log(cmd)

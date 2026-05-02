@@ -1,23 +1,24 @@
-import os
-from PIL import Image
+"""DLL++ Sprite Import - загрузка изображений в canvas (через библиотеку draw.canvas)"""
+import importlib, os
+from tkinter import PhotoImage
 
-def get_data():
-    return {"LAST_SPRITE": "None", "SPRITE_STATUS": "Ready"}
-
-def load_sprite(path):
-    """Проверяет файл и возвращает его параметры"""
-    if os.path.exists(path):
-        try:
-            with Image.open(path) as img:
-                w, h = img.size
-                fmt = img.format
-            return {
-                "SPRITE_PATH": path,
-                "SPRITE_W": str(w),
-                "SPRITE_H": str(h),
-                "SPRITE_FORMAT": fmt,
-                "SPRITE_STATUS": "Loaded"
-            }
-        except:
-            return {"SPRITE_STATUS": "Error: Invalid Image"}
-    return {"SPRITE_STATUS": "Error: File Not Found"}
+def execute(cmd):
+    """
+    cmd: путь_к_изображению
+    Загружает изображение и выводит в окне Canvas (через draw.canvas)
+    """
+    path = cmd.strip()
+    if not os.path.exists(path):
+        print(f"[sprite] Файл не найден: {path}")
+        return
+    # Используем draw.canvas для отображения
+    if "draw.canvas" in sys.modules:
+        mod = sys.modules["draw.canvas"]
+        from threading import Thread
+        win = mod.DrawingWindow(400, 400, "Sprite")
+        img = PhotoImage(file=path)
+        win.canvas.create_image(200, 200, image=img)
+        win.canvas.image = img  # сохранить ссылку
+        Thread(target=win.show, daemon=True).start()
+    else:
+        print("[sprite] Необходима загруженная библиотека draw.canvas")
