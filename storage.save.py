@@ -1,49 +1,56 @@
 """
-DLL++ Storage Library - сохраняет/загружает переменные STORAGE в/из JSON.
+DLL++ Advanced Math Library v2.1
+Добавлены: deg, rad, sind, cosd, tand
 """
 
-import json, os
+import math
+import re
 
-DEFAULT_FILE = "dll_storage.json"
+MATH_CONTEXT = {
+    "abs": abs, "round": round, "sqrt": math.sqrt,
+    "sin": math.sin, "cos": math.cos, "tan": math.tan,
+    "asin": math.asin, "acos": math.acos, "atan": math.atan,
+    "sind": lambda x: math.sin(math.radians(x)),
+    "cosd": lambda x: math.cos(math.radians(x)),
+    "tand": lambda x: math.tan(math.radians(x)),
+    "deg": math.degrees,
+    "rad": math.radians,
+    "log": math.log, "log10": math.log10, "exp": math.exp,
+    "pi": math.pi, "e": math.e, "pow": pow,
+    "ceil": math.ceil, "floor": math.floor
+}
+
+def safe_eval(expr, variables):
+    expr = re.sub(r'(\d+(\.\d+)?)%', r'(\1*0.01)', expr)
+    expr = expr.replace('^', '**')
+    for name, val in variables.items():
+        if re.match(r'^[a-zA-Z_]\w*$', name):
+            expr = re.sub(r'\b' + name + r'\b', str(val), expr)
+    allowed = "0123456789+-*/().% ,"
+    if not all(c in allowed + "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_" for c in expr.replace(' ', '')):
+        raise ValueError("Недопустимые символы в выражении.")
+    return eval(expr, {"__builtins__": {}}, {**MATH_CONTEXT, **variables})
 
 def execute(cmd):
-    # Получаем переданные объекты (если были)
-    from sys import modules
-    mod = modules.get("storage.save")
+    import sys
+    mod = sys.modules.get("calc.math")
     if not mod or not hasattr(mod, "storage"):
-        print("[storage] Ошибка: нет связи с движком. Загрузите библиотеку корректно.")
+        print("[calc] Ошибка: нет доступа к переменным.")
         return
-    STORAGE = mod.storage
-    REGISTRY = getattr(mod, "registry", {})
-
-    if cmd == "save":
-        data = {"storage": dict(STORAGE), "registry": dict(REGISTRY), "version": "1.0"}
-        with open(DEFAULT_FILE, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
-        print(f"[storage] Данные сохранены в {DEFAULT_FILE}")
-    elif cmd == "load":
-        if not os.path.exists(DEFAULT_FILE):
-            print("[storage] Файл сохранения не найден.")
-            return
-        with open(DEFAULT_FILE, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        STORAGE.clear()
-        STORAGE.update(data.get("storage", {}))
-        REGISTRY.clear()
-        REGISTRY.update(data.get("registry", {}))
-        print("[storage] Данные загружены.")
-    elif cmd == "clear":
-        if os.path.exists(DEFAULT_FILE):
-            os.remove(DEFAULT_FILE)
-        STORAGE.clear()
-        REGISTRY.clear()
-        print("[storage] Хранилище очищено (файл удалён).")
-    else:
-        print("[storage] Команды: save, load, clear")
+    vars = mod.storage
+    expr = cmd.strip()
+    if not expr:
+        print("[calc] Введите выражение (например: sind(30) или 45 rad)")
+        return
+    try:
+        result = safe_eval(expr, vars)
+        print(f"[calc] {expr} = {result}")
+    except Exception as e:
+        print(f"[calc] Ошибка: {e}")
 
 def initialize(storage, registry=None):
     import sys
-    mod = sys.modules.get("storage.save")
+    mod = sys.modules.get("calc.math")
     if mod:
         mod.storage = storage
         mod.registry = registry or {}
