@@ -12,5 +12,6 @@
     "security.scan.py": "ddc62eb9f80c163a7681a15757294ba5",
     "storage.save.py": "57c7ab1f5b31dea47e0b7d5f69dd23bb",
     "sys.disk.py": "1a92617a367a43c3428b3d6252c75f90",
-    "system.win.py": "eef144c44e13f12c0b27da2025682f36"
+    "system.win.py": "eef144c44e13f12c0b27da2025682f36",
+    "telegram.bot.py": "8da4b2b6e4045335f279a43cf53ce9f6"
 }
