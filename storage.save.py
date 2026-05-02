@@ -1,7 +1,6 @@
 """DLL++ Storage - сохранение/загрузка переменных STORAGE"""
 import json, os
 
-# Эти переменные будут установлены движком после загрузки модуля
 _storage = {}
 _registry = {}
 
@@ -16,6 +15,16 @@ def execute(cmd):
         with open(DEFAULT_FILE, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
         print(f"[storage] Данные сохранены в {DEFAULT_FILE}")
+    elif cmd.startswith("save "):
+        # Формат: save ключ значение
+        parts = cmd.split(" ", 2)
+        if len(parts) == 3:
+            storage[parts[1]] = parts[2]
+            # Автосохранение в файл
+            data = {"storage": dict(storage), "registry": dict(registry), "version": "1.0"}
+            with open(DEFAULT_FILE, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+            print(f"[storage] {parts[1]} = {parts[2]}")
     elif cmd == "load":
         if not os.path.exists(DEFAULT_FILE):
             print("[storage] Файл сохранения не найден.")
@@ -34,4 +43,4 @@ def execute(cmd):
         registry.clear()
         print("[storage] Хранилище очищено.")
     else:
-        print("[storage] Команды: save, load, clear")
+        print("[storage] Команды: save, save key value, load, clear")
