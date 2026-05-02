@@ -1,10 +1,4 @@
-"""
-DLL++ Advanced Math Library v2.1
-Добавлены: deg, rad, sind, cosd, tand
-"""
-
-import math
-import re
+import math, re
 
 MATH_CONTEXT = {
     "abs": abs, "round": round, "sqrt": math.sqrt,
@@ -13,8 +7,7 @@ MATH_CONTEXT = {
     "sind": lambda x: math.sin(math.radians(x)),
     "cosd": lambda x: math.cos(math.radians(x)),
     "tand": lambda x: math.tan(math.radians(x)),
-    "deg": math.degrees,
-    "rad": math.radians,
+    "deg": math.degrees, "rad": math.radians,
     "log": math.log, "log10": math.log10, "exp": math.exp,
     "pi": math.pi, "e": math.e, "pow": pow,
     "ceil": math.ceil, "floor": math.floor
@@ -31,26 +24,15 @@ def safe_eval(expr, variables):
         raise ValueError("Недопустимые символы в выражении.")
     return eval(expr, {"__builtins__": {}}, {**MATH_CONTEXT, **variables})
 
-def execute(cmd):
-    import sys
-    mod = sys.modules.get("calc.math")
-    if not mod or not hasattr(mod, "storage"):
-        print("[calc] Ошибка: нет доступа к переменным.")
-        return
-    vars = mod.storage
+def execute(cmd, storage=None, registry=None):
+    if storage is None:
+        storage = {}
     expr = cmd.strip()
     if not expr:
-        print("[calc] Введите выражение (например: sind(30) или 45 rad)")
+        print("[calc] Введите выражение (например: 5 + 3 * 2, sqrt(16), 10% от 200)")
         return
     try:
-        result = safe_eval(expr, vars)
-        print(f"[calc] {expr} = {result}")
+        result = safe_eval(expr, storage)
+        print(f"[calc] {cmd} = {result}")
     except Exception as e:
         print(f"[calc] Ошибка: {e}")
-
-def initialize(storage, registry=None):
-    import sys
-    mod = sys.modules.get("calc.math")
-    if mod:
-        mod.storage = storage
-        mod.registry = registry or {}
